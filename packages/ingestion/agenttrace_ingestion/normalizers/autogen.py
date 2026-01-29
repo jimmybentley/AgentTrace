@@ -1,0 +1,87 @@
+"""AutoGen-specific normalizer."""
+
+from typing import Any
+
+from agenttrace_core.models import AgentInfo, MessageInfo, NormalizedSpan
+
+from .base import BaseNormalizer
+
+
+class AutoGenNormalizer(BaseNormalizer):
+    """
+    Normalize AutoGen traces to AgentTrace format.
+
+    AutoGen uses:
+    - Agent names in conversation structure
+    - Message passing between agents
+    - Group chat patterns
+    """
+
+    FRAMEWORK = "autogen"
+
+    def normalize(self, span: Any, resource_attrs: dict[str, Any]) -> NormalizedSpan:
+        """Normalize an AutoGen OTLP span."""
+        attrs = self._extract_attributes(span.attributes)
+
+        # Extract basic span information
+        span_id = span.span_id.hex() if hasattr(span.span_id, "hex") else str(span.span_id)
+        trace_id = span.trace_id.hex() if hasattr(span.trace_id, "hex") else str(span.trace_id)
+        parent_span_id = None
+        if span.parent_span_id and span.parent_span_id != b"\x00" * 8:
+            parent_span_id = (
+                span.parent_span_id.hex()
+                if hasattr(span.parent_span_id, "hex")
+                else str(span.parent_span_id)
+            )
+
+        # Extract agent information
+        agent_info = None
+        agent_name = attrs.get("autogen.agent.name") or attrs.get("agent.name")
+        if agent_name:
+            agent_info = AgentInfo(
+                name=agent_name,
+                role=attrs.get("autogen.agent.role") or attrs.get("agent.role"),
+                model=attrs.get("llm.model") or attrs.get("gen_ai.request.model"),
+                framework=self.FRAMEWORK,
+            )
+
+        # Extract inter-agent messages
+        messages = []
+        if attrs.get("autogen.message.sender") and attrs.get("autogen.message.recipient"):
+            messages.append(
+                MessageInfo(
+                    from_agent=attrs["autogen.message.sender"],
+                    to_agent=attrs["autogen.message.recipient"],
+                    message_type=attrs.get("autogen.message.type", "request"),
+                    content={"message": attrs.get("autogen.message.content", {})},
+                    timestamp=self._ns_to_datetime(span.start_time_unix_nano),
+                )
+            )
+
+        # Determine span kind
+        kind = "agent_message"
+        if "llm" in span.name.lower() or attrs.get("gen_ai.operation.name"):
+            kind = "llm_call"
+        elif "tool" in span.name.lower():
+            kind = "tool_call"
+
+        return NormalizedSpan(
+            span_id=span_id,
+            trace_id=trace_id,
+            parent_span_id=parent_span_id,
+            name=span.name,
+            kind=kind,
+            start_time=self._ns_to_datetime(span.start_time_unix_nano),
+            end_time=(
+                self._ns_to_datetime(span.end_time_unix_nano)
+                if span.end_time_unix_nano
+                else None
+            ),
+            status=self._map_status(span.status),
+            agent=agent_info,
+            messages=messages,
+            model=attrs.get("llm.model") or attrs.get("gen_ai.request.model"),
+            input_tokens=attrs.get("gen_ai.usage.input_tokens"),
+            output_tokens=attrs.get("gen_ai.usage.output_tokens"),
+            attributes=attrs,
+        )
