@@ -117,3 +117,56 @@ class Span(BaseModel):
             }
         }
     )
+
+
+class AgentInfo(BaseModel):
+    """Agent metadata extracted during normalization."""
+
+    name: str
+    role: str | None = None
+    model: str | None = None
+    framework: str | None = None
+    config: dict[str, Any] = Field(default_factory=dict)
+
+
+class MessageInfo(BaseModel):
+    """Inter-agent message data."""
+
+    from_agent: str | None = None
+    to_agent: str | None = None
+    message_type: str = "request"  # request, response, broadcast, handoff
+    content: dict[str, Any] = Field(default_factory=dict)
+    timestamp: datetime | None = None
+
+
+class NormalizedSpan(BaseModel):
+    """Normalized span output from framework-specific normalizers."""
+
+    span_id: str
+    trace_id: str
+    parent_span_id: str | None = None
+    name: str
+    kind: str
+    start_time: datetime
+    end_time: datetime | None = None
+    status: str = "ok"
+
+    # Agent information (if this span is associated with an agent)
+    agent: AgentInfo | None = None
+
+    # Inter-agent messages extracted from this span
+    messages: list[MessageInfo] = Field(default_factory=list)
+
+    # LLM-specific fields
+    model: str | None = None
+    input_tokens: int | None = None
+    output_tokens: int | None = None
+    cost_usd: Decimal | None = None
+
+    # Content
+    input: dict[str, Any] | None = None
+    output: dict[str, Any] | None = None
+    error: dict[str, Any] | None = None
+
+    # OpenTelemetry semantic attributes
+    attributes: dict[str, Any] = Field(default_factory=dict)
