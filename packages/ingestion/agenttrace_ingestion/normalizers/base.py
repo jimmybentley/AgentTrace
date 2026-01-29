@@ -1,5 +1,6 @@
 """Base normalizer class for framework-specific normalization."""
 
+from datetime import UTC
 from typing import Any
 
 from agenttrace_core.models import NormalizedSpan
@@ -82,6 +83,6 @@ class BaseNormalizer:
 
     def _ns_to_datetime(self, ns: int):
         """Convert nanoseconds timestamp to datetime."""
-        from datetime import datetime, timezone
+        from datetime import datetime
 
-        return datetime.fromtimestamp(ns / 1_000_000_000, tz=timezone.utc)
+        return datetime.fromtimestamp(ns / 1_000_000_000, tz=UTC)
