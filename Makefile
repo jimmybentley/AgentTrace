@@ -21,9 +21,24 @@ dev: ## Install dev dependencies and set up pre-commit hooks
 	@echo "✓ Dev environment ready"
 
 test: ## Run all tests
-	@echo "Running tests..."
-	uv run pytest packages/core/tests -v
+	@echo "Running core tests..."
+	@uv run pytest packages/core/tests -v --tb=short
+	@echo ""
+	@echo "Running ingestion tests..."
+	@cd packages/ingestion && uv run pytest tests/test_normalizers.py tests/test_otlp.py -v --tb=short
 	@echo "✓ All tests passed"
+
+test-unit: ## Run unit tests only (no database required)
+	@echo "Running unit tests..."
+	@uv run pytest packages/core/tests -v --tb=short
+	@cd packages/ingestion && uv run pytest tests/test_normalizers.py tests/test_otlp.py -v --tb=short
+	@echo "✓ Unit tests passed"
+
+test-integration: ## Run integration tests (requires database)
+	@echo "Running integration tests..."
+	@echo "⚠ Note: Requires Docker database (make docker-up)"
+	@cd packages/ingestion && uv run pytest tests/test_integration.py -v --tb=short
+	@echo "✓ Integration tests passed"
 
 lint: ## Run linting checks with ruff
 	@echo "Running linters..."
