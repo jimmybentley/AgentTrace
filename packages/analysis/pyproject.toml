@@ -1,0 +1,26 @@
+[project]
+name = "agenttrace-analysis"
+version = "0.1.0"
+description = "Analysis engine for AgentTrace"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+
+dependencies = [
+    "agenttrace-core",
+    "networkx>=3.2.0",
+    "asyncpg>=0.29.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+
+[tool.uv.sources]
+agenttrace-core = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

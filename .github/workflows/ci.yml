@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, claude/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --all-packages
+
+      - name: Run ruff linting
+        run: uv run ruff check packages/
+
+      - name: Run ruff format check
+        run: uv run ruff format --check packages/
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --all-packages
+
+      - name: Run tests
+        run: uv run pytest packages/core/tests -v --tb=short
+
+  verify:
+    name: Verify Imports
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "latest"
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: uv sync --all-packages
+
+      - name: Verify core imports
+        run: |
+          uv run python -c "from agenttrace_core.models import Trace, Span, Agent; print('✓ Core models importable')"
+          uv run python -c "from agenttrace_core.config import Settings; print('✓ Core config importable')"
+          uv run python -c "from agenttrace_core.exceptions import AgentTraceError; print('✓ Core exceptions importable')"
+
+      - name: Verify ingestion imports
+        run: |
+          uv run python -c "from agenttrace_ingestion.server import app; print('✓ Ingestion server importable')"
+
+      - name: Verify analysis imports
+        run: |
+          uv run python -c "import agenttrace_analysis; print('✓ Analysis package importable')"
+
+      - name: Verify replay imports
+        run: |
+          uv run python -c "import agenttrace_replay; print('✓ Replay package importable')"
+
+      - name: Verify SDK imports
+        run: |
+          uv run python -c "import agenttrace; print('✓ SDK package importable')"
