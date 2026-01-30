@@ -1,4 +1,4 @@
-.PHONY: install dev test lint format docker-up docker-down clean help
+.PHONY: install dev test lint format docker-up docker-down migrate migrate-down migrate-new run-ingestion clean help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -21,9 +21,24 @@ dev: ## Install dev dependencies and set up pre-commit hooks
 	@echo "✓ Dev environment ready"
 
 test: ## Run all tests
-	@echo "Running tests..."
-	uv run pytest packages/core/tests -v
+	@echo "Running core tests..."
+	@uv run pytest packages/core/tests -v --tb=short
+	@echo ""
+	@echo "Running ingestion tests..."
+	@cd packages/ingestion && uv run pytest tests/test_normalizers.py tests/test_otlp.py -v --tb=short
 	@echo "✓ All tests passed"
+
+test-unit: ## Run unit tests only (no database required)
+	@echo "Running unit tests..."
+	@uv run pytest packages/core/tests -v --tb=short
+	@cd packages/ingestion && uv run pytest tests/test_normalizers.py tests/test_otlp.py -v --tb=short
+	@echo "✓ Unit tests passed"
+
+test-integration: ## Run integration tests (requires database)
+	@echo "Running integration tests..."
+	@echo "⚠ Note: Requires Docker database (make docker-up)"
+	@cd packages/ingestion && uv run pytest tests/test_integration.py -v --tb=short
+	@echo "✓ Integration tests passed"
 
 lint: ## Run linting checks with ruff
 	@echo "Running linters..."
@@ -52,6 +67,27 @@ docker-down: ## Stop Docker services
 
 docker-logs: ## View Docker service logs
 	docker-compose -f docker-compose.dev.yml logs -f
+
+migrate: ## Run database migrations
+	@echo "Running migrations..."
+	uv run alembic upgrade head
+	@echo "✓ Migrations complete"
+
+migrate-down: ## Rollback last migration
+	@echo "Rolling back last migration..."
+	uv run alembic downgrade -1
+	@echo "✓ Rollback complete"
+
+migrate-new: ## Create new migration (use: make migrate-new name="migration name")
+	@if [ -z "$(name)" ]; then \
+		echo "Error: Please specify migration name: make migrate-new name=\"your migration name\""; \
+		exit 1; \
+	fi
+	uv run alembic revision -m "$(name)"
+
+run-ingestion: ## Start ingestion service (FastAPI)
+	@echo "Starting ingestion service on http://localhost:4318"
+	uv run uvicorn agenttrace_ingestion.server:app --reload --port 4318
 
 clean: ## Clean build artifacts and caches
 	@echo "Cleaning build artifacts..."
