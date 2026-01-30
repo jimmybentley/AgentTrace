@@ -6,69 +6,129 @@ AgentTrace is an open-source debugging and observability platform purpose-built 
 
 ## Status
 
-🚧 **Phase 0: Project Scaffolding** - In Progress
+**Phase 1: Core Ingestion & Storage** - Complete
 
-This project is in active development. Phase 0 (scaffolding) is complete. See [agenttrace-design-doc.md](./agenttrace-design-doc.md) for the full roadmap.
+AgentTrace is in active development. The OTLP ingestion pipeline is operational and accepting traces from multi-agent systems. See [agenttrace-design-doc.md](./agenttrace-design-doc.md) for the complete architecture and roadmap.
 
-## Features (Planned)
+### Currently Working
 
-- 🔍 **Agent Communication Graphs** - Visualize how agents interact, not just parent-child relationships
-- 🎯 **Failure Attribution** - Pinpoint which agent caused failures in multi-agent pipelines
-- ⏮️ **Time-Travel Replay** - Debug from arbitrary checkpoints, not just from the start
-- 🔌 **Framework Agnostic** - Support for LangGraph, AutoGen, CrewAI, and custom agents
-- 📊 **OTLP Native** - Built on OpenTelemetry for standardized trace ingestion
+- OTLP trace ingestion (HTTP endpoint with protobuf and JSON support)
+- Framework-specific normalization for LangGraph, AutoGen, CrewAI, and generic agents
+- TimescaleDB-optimized storage for spans, agents, and inter-agent messages
+- Batch writing with connection pooling for high-throughput ingestion
+- Comprehensive test suite with 48 tests (41 passing unit tests, 7 integration tests)
+
+## Features
+
+**Available Now:**
+- **OTLP Native Ingestion** - Production-ready HTTP endpoint accepting OpenTelemetry Protocol traces
+- **Framework Agnostic Normalization** - Intelligent parsing for LangGraph, AutoGen, CrewAI, and custom agents
+- **Time-Series Optimized Storage** - PostgreSQL with TimescaleDB for efficient span querying
+- **Agent Metadata Tracking** - Automatic extraction of agent names, roles, frameworks, and configurations
+
+**Coming Soon:**
+- **Agent Communication Graphs** - Visual representation of agent interactions and message flows
+- **Failure Attribution** - Root cause analysis pinpointing which agent caused pipeline failures
+- **Time-Travel Replay** - Checkpoint-based debugging to replay from arbitrary points in execution
+- **Web UI** - Interactive dashboard for exploring traces and debugging multi-agent systems
 
 ## Quick Start
 
 ### Prerequisites
 
-- Python 3.11+
-- [uv](https://github.com/astral-sh/uv) (Python package manager)
+- Python 3.11 or higher
+- [uv](https://github.com/astral-sh/uv) package manager
 - Docker and Docker Compose (for local development)
 
 ### Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/AgentTrace.git
+git clone https://github.com/jimmybentley/AgentTrace.git
 cd AgentTrace
 ```
 
-2. Install dependencies:
+2. Install all dependencies:
 ```bash
 make install
 ```
 
-3. Start development services:
+3. Start the database:
 ```bash
 make docker-up
 ```
 
-This will start:
-- PostgreSQL with TimescaleDB extension on `localhost:5432`
-  - Database: `agenttrace`
-  - User: `agenttrace`
-  - Password: `dev_password`
+This starts PostgreSQL with TimescaleDB on `localhost:5432`:
+- Database: `agenttrace`
+- User: `agenttrace`
+- Password: `dev_password`
+
+4. Run database migrations:
+```bash
+make migrate
+```
+
+5. Start the ingestion service:
+```bash
+make run-ingestion
+```
+
+The OTLP ingestion endpoint is now available at `http://localhost:4318/v1/traces`.
 
 ### Verify Installation
 
+Run the test suite to verify everything is working:
+
 ```bash
-# Run tests
+# Unit tests (no database required)
 make test
 
-# Run linting
+# Integration tests (requires database)
+make test-integration
+
+# Linting and formatting
 make lint
 
-# Verify imports work
+# Verify all imports
 make verify
 ```
 
 Expected output:
 ```
-✓ Core models importable
-✓ Ingestion server importable
-✓ All tests passed
+✓ 41 unit tests passing
+✓ 7 integration tests passing
+✓ All imports verified
 ```
+
+### Sending Your First Trace
+
+Once the ingestion service is running, you can send OTLP traces via HTTP:
+
+```bash
+curl -X POST http://localhost:4318/v1/traces \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceSpans": [{
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "my-agent-system"}},
+          {"key": "agent.framework", "value": {"stringValue": "langgraph"}}
+        ]
+      },
+      "scopeSpans": [{
+        "spans": [{
+          "traceId": "0102030405060708090a0b0c0d0e0f10",
+          "spanId": "0102030405060708",
+          "name": "agent_execution",
+          "startTimeUnixNano": "1640000000000000000",
+          "endTimeUnixNano": "1640000001000000000"
+        }]
+      }]
+    }]
+  }'
+```
+
+The trace will be normalized, stored in TimescaleDB, and available for querying.
 
 ## Project Structure
 
@@ -105,44 +165,61 @@ agenttrace/
 
 ## Development
 
-### Available Make Commands
+### Available Commands
+
+The project includes a comprehensive Makefile for common development tasks:
 
 ```bash
-make help         # Show all available commands
-make install      # Install all dependencies
-make dev          # Set up dev environment with pre-commit hooks
-make test         # Run all tests
-make lint         # Run linting checks
-make format       # Format code with ruff
-make docker-up    # Start Docker services
-make docker-down  # Stop Docker services
-make clean        # Clean build artifacts
-make verify       # Verify installation
+make help              # Show all available commands
+make install           # Install all dependencies
+make dev               # Set up development environment with pre-commit hooks
+make test              # Run unit tests (41 tests)
+make test-integration  # Run integration tests (7 tests, requires database)
+make lint              # Run linting and format checks
+make format            # Auto-format code with ruff
+make migrate           # Run database migrations
+make run-ingestion     # Start the OTLP ingestion service
+make docker-up         # Start PostgreSQL with TimescaleDB
+make docker-down       # Stop all Docker services
+make docker-logs       # View database logs
+make clean             # Clean build artifacts and caches
+make verify            # Verify installation and imports
 ```
 
 ### Running Tests
 
+AgentTrace has 48 tests organized into unit and integration suites. See [TESTING.md](./TESTING.md) for detailed testing documentation.
+
 ```bash
-# Run all tests
+# Run all unit tests (no database required)
 make test
+
+# Run integration tests (requires database)
+make docker-up
+make migrate
+make test-integration
 
 # Run tests for a specific package
 uv run pytest packages/core/tests -v
+cd packages/ingestion && uv run pytest tests/test_normalizers.py -v
 
 # Run with coverage
-uv run pytest packages/core/tests --cov=agenttrace_core
+uv run pytest packages/ --cov=agenttrace_core --cov=agenttrace_ingestion
 ```
 
-### Code Style
+### Code Quality
 
-We use [Ruff](https://github.com/astral-sh/ruff) for linting and formatting:
+The project uses [Ruff](https://github.com/astral-sh/ruff) for linting and formatting with strict type checking:
 
 ```bash
-# Check formatting
+# Check code quality
 make lint
 
-# Auto-format code
+# Auto-format all code
 make format
+
+# Check for security issues
+uv run ruff check packages/ --select S
 ```
 
 ## Architecture
@@ -159,33 +236,75 @@ See [agenttrace-design-doc.md](./agenttrace-design-doc.md) for detailed architec
 
 ## Database
 
-AgentTrace uses PostgreSQL with the TimescaleDB extension for time-series optimization.
+AgentTrace uses PostgreSQL 16 with the TimescaleDB extension for time-series optimization on span data.
 
-### Local Development Database
+### Schema
+
+The database includes 6 core tables:
+
+- **traces** - Top-level trace metadata with session and user context
+- **spans** - Individual execution units (TimescaleDB hypertable partitioned by start_time)
+- **agents** - Agent metadata (name, role, framework, configuration)
+- **agent_messages** - Inter-agent communication records
+- **checkpoints** - State snapshots for time-travel replay
+- **failure_annotations** - MAST taxonomy failure classifications
+
+Migrations are managed with Alembic and located in `migrations/versions/`.
+
+### Local Development
 
 ```bash
-# Start database
+# Start PostgreSQL with TimescaleDB
 make docker-up
+
+# Run migrations
+make migrate
 
 # Connect with psql
 psql postgresql://agenttrace:dev_password@localhost:5432/agenttrace
+
+# View migration history
+uv run alembic history
 
 # Stop database
 make docker-down
 ```
 
+### Environment Variables
+
+Database connection can be configured via environment variables:
+
+```bash
+export DATABASE_URL="postgresql://user:pass@host:5432/dbname"
+make migrate
+```
+
 ## Roadmap
 
-- [x] **Phase 0** (Week 1) - Project scaffolding ← **Current**
-- [ ] **Phase 1** (Weeks 2-3) - Core ingestion & storage
-- [ ] **Phase 2** (Weeks 4-5) - Analysis engine & graph construction
-- [ ] **Phase 3** (Weeks 6-8) - Web UI
-- [ ] **Phase 4** (Weeks 9-11) - Replay engine
-- [ ] **Phase 5** (Weeks 12-14) - SDK & integrations
+- [x] **Phase 0** - Project scaffolding and workspace setup
+- [x] **Phase 1** - Core ingestion & storage (OTLP endpoint, normalizers, TimescaleDB schema) ← **Current**
+- [ ] **Phase 2** - Analysis engine & graph construction (communication graphs, MAST taxonomy)
+- [ ] **Phase 3** - Web UI (React dashboard, trace visualization, debugging interface)
+- [ ] **Phase 4** - Replay engine (checkpoint management, state reconstruction)
+- [ ] **Phase 5** - SDK & integrations (Python SDK, framework-specific instrumentation)
+
+See [agenttrace-design-doc.md](./agenttrace-design-doc.md) for detailed specifications of each phase.
 
 ## Contributing
 
-This project is in early development. Contributions will be welcome once Phase 1 is complete.
+AgentTrace is in active development. The ingestion pipeline is operational and contributions are welcome.
+
+Before contributing:
+1. Review the [design document](./agenttrace-design-doc.md) for architecture context
+2. Check existing issues and PRs to avoid duplication
+3. Run `make test` and `make lint` to ensure code quality
+4. Follow the existing code style (Ruff formatting, type hints required)
+
+Areas where contributions would be particularly valuable:
+- Additional framework normalizers (Semantic Kernel, Haystack, etc.)
+- Test coverage improvements
+- Documentation and examples
+- Performance optimizations for high-throughput ingestion
 
 ## License
 

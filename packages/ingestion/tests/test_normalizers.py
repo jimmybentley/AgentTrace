@@ -22,8 +22,12 @@ def mock_span():
     span.trace_id = b"\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d\x1e\x1f\x20"
     span.parent_span_id = b"\x00\x00\x00\x00\x00\x00\x00\x00"
     span.name = "test_span"
-    span.start_time_unix_nano = int(datetime(2026, 1, 29, 12, 0, 0, tzinfo=UTC).timestamp() * 1_000_000_000)
-    span.end_time_unix_nano = int(datetime(2026, 1, 29, 12, 0, 1, tzinfo=UTC).timestamp() * 1_000_000_000)
+    span.start_time_unix_nano = int(
+        datetime(2026, 1, 29, 12, 0, 0, tzinfo=UTC).timestamp() * 1_000_000_000
+    )
+    span.end_time_unix_nano = int(
+        datetime(2026, 1, 29, 12, 0, 1, tzinfo=UTC).timestamp() * 1_000_000_000
+    )
     span.status = Mock(code=1, message="")
     span.attributes = []
     span.events = []

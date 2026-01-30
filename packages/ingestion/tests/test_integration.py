@@ -98,17 +98,13 @@ class TestOTLPIngestion:
                                     "name": "test_span",
                                     "startTimeUnixNano": str(
                                         int(
-                                            datetime(
-                                                2026, 1, 29, 12, 0, 0, tzinfo=UTC
-                                            ).timestamp()
+                                            datetime(2026, 1, 29, 12, 0, 0, tzinfo=UTC).timestamp()
                                             * 1_000_000_000
                                         )
                                     ),
                                     "endTimeUnixNano": str(
                                         int(
-                                            datetime(
-                                                2026, 1, 29, 12, 0, 1, tzinfo=UTC
-                                            ).timestamp()
+                                            datetime(2026, 1, 29, 12, 0, 1, tzinfo=UTC).timestamp()
                                             * 1_000_000_000
                                         )
                                     ),
@@ -164,9 +160,7 @@ class TestOTLPIngestion:
                                     "name": f"span_{i}",
                                     "startTimeUnixNano": str(
                                         int(
-                                            datetime(
-                                                2026, 1, 29, 12, 0, i, tzinfo=UTC
-                                            ).timestamp()
+                                            datetime(2026, 1, 29, 12, 0, i, tzinfo=UTC).timestamp()
                                             * 1_000_000_000
                                         )
                                     ),
@@ -190,9 +184,7 @@ class TestOTLPIngestion:
         span_count = await db_connection.fetchval("SELECT COUNT(*) FROM spans")
         assert span_count == 5
 
-    async def test_ingest_with_agent_message(
-        self, app_client, clean_database, db_connection
-    ):
+    async def test_ingest_with_agent_message(self, app_client, clean_database, db_connection):
         """Test ingesting span with inter-agent message."""
         otlp_data = {
             "resourceSpans": [
@@ -211,9 +203,7 @@ class TestOTLPIngestion:
                                     "name": "langgraph.edge",
                                     "startTimeUnixNano": str(
                                         int(
-                                            datetime(
-                                                2026, 1, 29, 12, 0, 0, tzinfo=UTC
-                                            ).timestamp()
+                                            datetime(2026, 1, 29, 12, 0, 0, tzinfo=UTC).timestamp()
                                             * 1_000_000_000
                                         )
                                     ),

@@ -34,9 +34,7 @@ class GenericNormalizer(BaseNormalizer):
         # Try to extract agent information from common attributes
         agent_info = None
         agent_name = (
-            attrs.get("agent.name")
-            or attrs.get("agent.id")
-            or resource_attrs.get("service.name")
+            attrs.get("agent.name") or attrs.get("agent.id") or resource_attrs.get("service.name")
         )
 
         if agent_name:
@@ -58,9 +56,7 @@ class GenericNormalizer(BaseNormalizer):
             kind=kind,
             start_time=self._ns_to_datetime(span.start_time_unix_nano),
             end_time=(
-                self._ns_to_datetime(span.end_time_unix_nano)
-                if span.end_time_unix_nano
-                else None
+                self._ns_to_datetime(span.end_time_unix_nano) if span.end_time_unix_nano else None
             ),
             status=self._map_status(span.status),
             agent=agent_info,

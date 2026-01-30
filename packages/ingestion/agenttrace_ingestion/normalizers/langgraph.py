@@ -69,9 +69,7 @@ class LangGraphNormalizer(BaseNormalizer):
 
         # Extract LLM-specific fields
         model = attrs.get("llm.model") or attrs.get("gen_ai.request.model")
-        input_tokens = attrs.get("llm.token_count.prompt") or attrs.get(
-            "gen_ai.usage.input_tokens"
-        )
+        input_tokens = attrs.get("llm.token_count.prompt") or attrs.get("gen_ai.usage.input_tokens")
         output_tokens = attrs.get("llm.token_count.completion") or attrs.get(
             "gen_ai.usage.output_tokens"
         )
@@ -92,9 +90,7 @@ class LangGraphNormalizer(BaseNormalizer):
             kind=kind,
             start_time=self._ns_to_datetime(span.start_time_unix_nano),
             end_time=(
-                self._ns_to_datetime(span.end_time_unix_nano)
-                if span.end_time_unix_nano
-                else None
+                self._ns_to_datetime(span.end_time_unix_nano) if span.end_time_unix_nano else None
             ),
             status=self._map_status(span.status),
             agent=agent_info,

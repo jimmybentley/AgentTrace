@@ -205,9 +205,7 @@ class DatabaseWriter:
                 span.attributes,
             )
 
-    async def _insert_agent_messages(
-        self, conn: asyncpg.Connection, batch: list[NormalizedSpan]
-    ):
+    async def _insert_agent_messages(self, conn: asyncpg.Connection, batch: list[NormalizedSpan]):
         """Insert agent messages extracted from spans."""
         for span in batch:
             if not span.messages:
