@@ -1,6 +1,5 @@
 """Tests for metrics aggregation."""
 
-
 from agenttrace_analysis.metrics import TraceMetrics
 
 

@@ -1,6 +1,5 @@
 """Tests for agent communication graph construction."""
 
-
 from agenttrace_analysis.graph import AgentGraph, AgentNode, CommunicationEdge
 
 
