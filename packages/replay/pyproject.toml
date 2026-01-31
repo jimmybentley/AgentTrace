@@ -9,12 +9,18 @@ license = {text = "MIT"}
 dependencies = [
     "agenttrace-core",
     "asyncpg>=0.29.0",
+    "fastapi>=0.109.0",
+    "deepdiff>=6.7.0",
+    "pydantic>=2.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.23.0",
+]
+langgraph = [
+    "langgraph>=0.0.40",
 ]
 
 [tool.uv.sources]
