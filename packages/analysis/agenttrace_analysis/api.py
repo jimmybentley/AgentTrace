@@ -76,10 +76,20 @@ async def list_traces(
 
         # Get paginated results
         list_query = f"""
-            SELECT trace_id, session_id, user_id, status, start_time, end_time, metadata
-            FROM traces
+            SELECT
+                t.trace_id,
+                t.name,
+                t.status,
+                t.start_time,
+                t.end_time,
+                t.metadata,
+                t.total_tokens,
+                t.total_cost_usd,
+                t.agent_count,
+                (SELECT COUNT(*) FROM spans WHERE trace_id = t.trace_id) as span_count
+            FROM traces t
             {where_clause}
-            ORDER BY start_time DESC
+            ORDER BY t.start_time DESC
             LIMIT ${param_idx} OFFSET ${param_idx + 1}
         """
         params.extend([limit, offset])
@@ -89,12 +99,15 @@ async def list_traces(
         traces = [
             {
                 "trace_id": row["trace_id"],
-                "session_id": row["session_id"],
-                "user_id": row["user_id"],
+                "name": row["name"],
                 "status": row["status"],
                 "start_time": row["start_time"].isoformat() if row["start_time"] else None,
                 "end_time": row["end_time"].isoformat() if row["end_time"] else None,
                 "metadata": row["metadata"],
+                "total_tokens": row["total_tokens"] or 0,
+                "total_cost_usd": float(row["total_cost_usd"]) if row["total_cost_usd"] else 0.0,
+                "agent_count": row["agent_count"] or 0,
+                "span_count": row["span_count"] or 0,
             }
             for row in rows
         ]
@@ -145,14 +158,15 @@ async def get_trace(
 
         result = {
             "trace_id": trace["trace_id"],
-            "session_id": trace["session_id"],
-            "user_id": trace["user_id"],
+            "name": trace["name"],
             "status": trace["status"],
             "start_time": trace["start_time"].isoformat() if trace["start_time"] else None,
             "end_time": trace["end_time"].isoformat() if trace["end_time"] else None,
             "metadata": trace["metadata"],
+            "total_tokens": trace["total_tokens"] or 0,
+            "total_cost_usd": float(trace["total_cost_usd"]) if trace["total_cost_usd"] else 0.0,
             "span_count": counts["span_count"],
-            "agent_count": counts["agent_count"],
+            "agent_count": trace["agent_count"] or counts["agent_count"],
         }
 
         # Optionally include graph
@@ -309,7 +323,7 @@ async def classify_trace_failures(trace_id: str) -> dict[str, Any]:
             """
             SELECT
                 span_id, parent_span_id, agent_id, name, kind, status,
-                start_time, end_time, input, output, error_message,
+                start_time, end_time, model, input, output, error,
                 attributes, input_tokens, output_tokens, cost_usd
             FROM spans
             WHERE trace_id = $1
@@ -405,8 +419,8 @@ async def list_trace_spans(
         spans = await conn.fetch(
             """
             SELECT
-                span_id, parent_span_id, agent_id, name, kind, status,
-                start_time, end_time, input, output, error_message,
+                span_id, trace_id, parent_span_id, agent_id, name, kind, status,
+                start_time, end_time, model, input, output, error,
                 attributes, input_tokens, output_tokens, cost_usd
             FROM spans
             WHERE trace_id = $1
@@ -421,6 +435,7 @@ async def list_trace_spans(
         span_list = [
             {
                 "span_id": span["span_id"],
+                "trace_id": span["trace_id"],
                 "parent_span_id": span["parent_span_id"],
                 "agent_id": span["agent_id"],
                 "name": span["name"],
@@ -428,9 +443,10 @@ async def list_trace_spans(
                 "status": span["status"],
                 "start_time": span["start_time"].isoformat() if span["start_time"] else None,
                 "end_time": span["end_time"].isoformat() if span["end_time"] else None,
+                "model": span["model"],
                 "input": span["input"],
                 "output": span["output"],
-                "error_message": span["error_message"],
+                "error": span["error"],
                 "attributes": span["attributes"],
                 "input_tokens": span["input_tokens"],
                 "output_tokens": span["output_tokens"],
@@ -467,7 +483,7 @@ async def get_span(span_id: str) -> dict[str, Any]:
             SELECT
                 s.span_id, s.trace_id, s.parent_span_id, s.agent_id,
                 s.name, s.kind, s.status, s.start_time, s.end_time,
-                s.input, s.output, s.error_message, s.attributes,
+                s.model, s.input, s.output, s.error, s.attributes,
                 s.input_tokens, s.output_tokens, s.cost_usd,
                 a.name as agent_name, a.role as agent_role
             FROM spans s
@@ -499,9 +515,10 @@ async def get_span(span_id: str) -> dict[str, Any]:
             "start_time": span["start_time"].isoformat() if span["start_time"] else None,
             "end_time": span["end_time"].isoformat() if span["end_time"] else None,
             "duration_ms": duration_ms,
+            "model": span["model"],
             "input": span["input"],
             "output": span["output"],
-            "error_message": span["error_message"],
+            "error": span["error"],
             "attributes": span["attributes"],
             "input_tokens": span["input_tokens"],
             "output_tokens": span["output_tokens"],

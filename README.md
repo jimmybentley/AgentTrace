@@ -26,11 +26,20 @@ AgentTrace is in active development. The OTLP ingestion pipeline is operational 
 - **Time-Series Optimized Storage** - PostgreSQL with TimescaleDB for efficient span querying
 - **Agent Metadata Tracking** - Automatic extraction of agent names, roles, frameworks, and configurations
 
-**Coming Soon:**
+**Phase 2 (Complete):**
 - **Agent Communication Graphs** - Visual representation of agent interactions and message flows
-- **Failure Attribution** - Root cause analysis pinpointing which agent caused pipeline failures
+- **Failure Attribution** - MAST taxonomy-based classification of multi-agent system failures
+- **Analysis API** - 8 REST endpoints for trace querying, graph data, and metrics
+
+**Phase 3 (Complete):**
+- **Web UI** - React dashboard with D3.js graph visualization
+- **Interactive Trace Explorer** - Paginated trace list with filtering and search
+- **Agent Graph Visualization** - Force-directed D3.js graph showing agent communication
+- **Timeline View** - Gantt-style span execution timeline
+- **Failure Analysis Panel** - Display and filter failure annotations by category
+
+**Coming Soon:**
 - **Time-Travel Replay** - Checkpoint-based debugging to replay from arbitrary points in execution
-- **Web UI** - Interactive dashboard for exploring traces and debugging multi-agent systems
 
 ## Quick Start
 
@@ -68,12 +77,26 @@ This starts PostgreSQL with TimescaleDB on `localhost:5432`:
 make migrate
 ```
 
-5. Start the ingestion service:
+5. Start the analysis API:
+```bash
+make run-api
+```
+
+The analysis API is now available at `http://localhost:8000`.
+
+6. Start the ingestion service:
 ```bash
 make run-ingestion
 ```
 
 The OTLP ingestion endpoint is now available at `http://localhost:4318/v1/traces`.
+
+7. Start the web UI:
+```bash
+cd web && npm install && npm run dev
+```
+
+The web UI is now available at `http://localhost:5173`.
 
 ### Verify Installation
 
@@ -157,7 +180,19 @@ agenttrace/
 │       └── agenttrace/
 │           └── integrations/    # LangGraph, AutoGen, CrewAI
 │
-├── web/                         # React frontend (Phase 3)
+├── web/                         # React frontend
+│   ├── src/
+│   │   ├── api/                 # API client and type definitions
+│   │   ├── hooks/               # React Query hooks
+│   │   ├── components/          # React components
+│   │   │   ├── AgentGraph/      # D3.js graph visualization
+│   │   │   ├── TraceList/       # Trace list and filters
+│   │   │   ├── TraceDetail/     # Trace detail view
+│   │   │   ├── SpanTimeline/    # Gantt-style timeline
+│   │   │   └── FailurePanel/    # Failure annotations
+│   │   ├── pages/               # Page components
+│   │   └── utils/               # Utility functions
+│   └── package.json
 ├── migrations/                  # Database migrations
 ├── docker-compose.dev.yml       # Local development setup
 └── Makefile                     # Development commands
@@ -282,9 +317,9 @@ make migrate
 ## Roadmap
 
 - [x] **Phase 0** - Project scaffolding and workspace setup
-- [x] **Phase 1** - Core ingestion & storage (OTLP endpoint, normalizers, TimescaleDB schema) ← **Current**
-- [ ] **Phase 2** - Analysis engine & graph construction (communication graphs, MAST taxonomy)
-- [ ] **Phase 3** - Web UI (React dashboard, trace visualization, debugging interface)
+- [x] **Phase 1** - Core ingestion & storage (OTLP endpoint, normalizers, TimescaleDB schema)
+- [x] **Phase 2** - Analysis engine & graph construction (communication graphs, MAST taxonomy)
+- [x] **Phase 3** - Web UI (React dashboard, D3.js trace visualization, debugging interface) ← **Current**
 - [ ] **Phase 4** - Replay engine (checkpoint management, state reconstruction)
 - [ ] **Phase 5** - SDK & integrations (Python SDK, framework-specific instrumentation)
 

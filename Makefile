@@ -1,4 +1,4 @@
-.PHONY: install dev test lint format docker-up docker-down migrate migrate-down migrate-new run-ingestion run-api run-server clean help
+.PHONY: install dev test lint format docker-up docker-down migrate migrate-down migrate-new run-ingestion run-api run-server run-web clean help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -101,6 +101,11 @@ run-api: ## Start analysis API server
 
 run-server: ## Start combined ingestion + analysis server (alias for run-api)
 	@$(MAKE) run-api
+
+run-web: ## Start web UI development server
+	@echo "Starting web UI on http://localhost:5173"
+	@echo "⚠ Note: API must be running on http://localhost:8000 (make run-api)"
+	cd web && npm install && npm run dev
 
 clean: ## Clean build artifacts and caches
 	@echo "Cleaning build artifacts..."
