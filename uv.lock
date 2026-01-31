@@ -49,6 +49,7 @@ source = { editable = "packages/analysis" }
 dependencies = [
     { name = "agenttrace-core" },
     { name = "asyncpg" },
+    { name = "fastapi" },
     { name = "networkx" },
 ]
 
@@ -62,6 +63,7 @@ dev = [
 requires-dist = [
     { name = "agenttrace-core", editable = "packages/core" },
     { name = "asyncpg", specifier = ">=0.29.0" },
+    { name = "fastapi", specifier = ">=0.109.0" },
     { name = "networkx", specifier = ">=3.2.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.23.0" },
@@ -97,6 +99,7 @@ name = "agenttrace-ingestion"
 version = "0.1.0"
 source = { editable = "packages/ingestion" }
 dependencies = [
+    { name = "agenttrace-analysis" },
     { name = "agenttrace-core" },
     { name = "asyncpg" },
     { name = "fastapi" },
@@ -116,6 +119,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "agenttrace-analysis", editable = "packages/analysis" },
     { name = "agenttrace-core", editable = "packages/core" },
     { name = "asyncpg", specifier = ">=0.29.0" },
     { name = "fastapi", specifier = ">=0.109.0" },
