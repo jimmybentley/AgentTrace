@@ -63,21 +63,27 @@ def test_list_traces_with_results(client, mock_db_pool):
     mock_traces = [
         {
             "trace_id": "trace-1",
-            "session_id": "session-1",
-            "user_id": "user-1",
+            "name": "Test Trace 1",
             "status": "completed",
             "start_time": datetime.now(UTC),
             "end_time": datetime.now(UTC),
             "metadata": {"key": "value"},
+            "total_tokens": 1000,
+            "total_cost_usd": 0.05,
+            "agent_count": 3,
+            "span_count": 10,
         },
         {
             "trace_id": "trace-2",
-            "session_id": "session-2",
-            "user_id": "user-2",
+            "name": "Test Trace 2",
             "status": "failed",
             "start_time": datetime.now(UTC),
             "end_time": None,
             "metadata": {},
+            "total_tokens": 500,
+            "total_cost_usd": 0.02,
+            "agent_count": 2,
+            "span_count": 5,
         },
     ]
     conn.fetch.return_value = mock_traces
@@ -98,12 +104,15 @@ def test_list_traces_with_status_filter(client, mock_db_pool):
     conn.fetch.return_value = [
         {
             "trace_id": "trace-1",
-            "session_id": "session-1",
-            "user_id": "user-1",
+            "name": "Failed Trace",
             "status": "failed",
             "start_time": datetime.now(UTC),
             "end_time": datetime.now(UTC),
             "metadata": {},
+            "total_tokens": 200,
+            "total_cost_usd": 0.01,
+            "agent_count": 1,
+            "span_count": 3,
         }
     ]
 
@@ -134,12 +143,14 @@ def test_get_trace_success(client, mock_db_pool):
     conn.fetchrow.side_effect = [
         {
             "trace_id": "trace-1",
-            "session_id": "session-1",
-            "user_id": "user-1",
+            "name": "Test Trace",
             "status": "completed",
             "start_time": datetime.now(UTC),
             "end_time": datetime.now(UTC),
             "metadata": {},
+            "total_tokens": 1500,
+            "total_cost_usd": 0.08,
+            "agent_count": 3,
         },
         {"span_count": 10, "agent_count": 3},
     ]
@@ -214,6 +225,7 @@ def test_list_trace_spans(client, mock_db_pool):
     mock_spans = [
         {
             "span_id": "span-1",
+            "trace_id": "trace-1",
             "parent_span_id": None,
             "agent_id": "agent-1",
             "name": "agent_execution",
@@ -221,9 +233,10 @@ def test_list_trace_spans(client, mock_db_pool):
             "status": "ok",
             "start_time": datetime.now(UTC),
             "end_time": datetime.now(UTC),
+            "model": "gpt-4",
             "input": {},
             "output": {},
-            "error_message": None,
+            "error": None,
             "attributes": {},
             "input_tokens": 100,
             "output_tokens": 50,
@@ -267,9 +280,10 @@ def test_get_span_success(client, mock_db_pool):
         "status": "ok",
         "start_time": datetime(2026, 1, 31, 12, 0, 0, tzinfo=UTC),
         "end_time": datetime(2026, 1, 31, 12, 0, 5, tzinfo=UTC),
+        "model": "gpt-4",
         "input": {"query": "test"},
         "output": {"result": "success"},
-        "error_message": None,
+        "error": None,
         "attributes": {},
         "input_tokens": 100,
         "output_tokens": 50,
