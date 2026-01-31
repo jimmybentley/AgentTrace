@@ -1,3 +1,12 @@
 """MAST (Multi-Agent System Failure Taxonomy) implementation."""
 
-# MAST taxonomy and rule-based classifier will be implemented in Phase 2
+from .rules import ClassificationResult, RuleBasedClassifier
+from .taxonomy import FAILURE_MODES, FailureCategory, FailureMode
+
+__all__ = [
+    "FailureCategory",
+    "FailureMode",
+    "FAILURE_MODES",
+    "ClassificationResult",
+    "RuleBasedClassifier",
+]

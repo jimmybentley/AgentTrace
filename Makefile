@@ -1,4 +1,4 @@
-.PHONY: install dev test lint format docker-up docker-down migrate migrate-down migrate-new run-ingestion clean help
+.PHONY: install dev test lint format docker-up docker-down migrate migrate-down migrate-new run-ingestion run-api run-server clean help
 
 # Default target
 .DEFAULT_GOAL := help
@@ -26,12 +26,16 @@ test: ## Run all tests
 	@echo ""
 	@echo "Running ingestion tests..."
 	@cd packages/ingestion && uv run pytest tests/test_normalizers.py tests/test_otlp.py -v --tb=short
+	@echo ""
+	@echo "Running analysis tests..."
+	@cd packages/analysis && uv run pytest tests/ -v --tb=short
 	@echo "✓ All tests passed"
 
 test-unit: ## Run unit tests only (no database required)
 	@echo "Running unit tests..."
 	@uv run pytest packages/core/tests -v --tb=short
 	@cd packages/ingestion && uv run pytest tests/test_normalizers.py tests/test_otlp.py -v --tb=short
+	@cd packages/analysis && uv run pytest tests/ -v --tb=short
 	@echo "✓ Unit tests passed"
 
 test-integration: ## Run integration tests (requires database)
@@ -89,6 +93,15 @@ run-ingestion: ## Start ingestion service (FastAPI)
 	@echo "Starting ingestion service on http://localhost:4318"
 	uv run uvicorn agenttrace_ingestion.server:app --reload --port 4318
 
+run-api: ## Start analysis API server
+	@echo "Starting analysis API on http://localhost:8000"
+	@echo "⚠ Note: Ingestion endpoint will be available at http://localhost:8000/v1/traces"
+	@echo "⚠ Note: Analysis endpoints available at http://localhost:8000/api/*"
+	uv run uvicorn agenttrace_ingestion.server:app --reload --port 8000
+
+run-server: ## Start combined ingestion + analysis server (alias for run-api)
+	@$(MAKE) run-api
+
 clean: ## Clean build artifacts and caches
 	@echo "Cleaning build artifacts..."
 	find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
@@ -102,4 +115,5 @@ verify: ## Verify installation and run basic checks
 	@echo "Verifying installation..."
 	@uv run python -c "from agenttrace_core.models import Trace, Span, Agent; print('✓ Core models importable')"
 	@uv run python -c "from agenttrace_ingestion.server import app; print('✓ Ingestion server importable')"
+	@uv run python -c "from agenttrace_analysis import AgentGraph, RuleBasedClassifier; print('✓ Analysis module importable')"
 	@echo "✓ Verification complete"

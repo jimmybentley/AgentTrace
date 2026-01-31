@@ -1,4 +1,4 @@
-"""FastAPI server for OTLP trace ingestion."""
+"""FastAPI server for OTLP trace ingestion and analysis."""
 
 import logging
 from contextlib import asynccontextmanager
@@ -11,6 +11,16 @@ from agenttrace_core.config import Settings
 from .normalizers import get_normalizer
 from .otlp import determine_framework, extract_resource_attributes, parse_otlp_request
 from .writers import DatabaseWriter
+
+# Import analysis API
+try:
+    from agenttrace_analysis import api_router, set_db_pool
+
+    ANALYSIS_AVAILABLE = True
+except ImportError:
+    ANALYSIS_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("Analysis module not available, API endpoints will not be mounted")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -27,11 +37,16 @@ async def lifespan(app: FastAPI):
 
     # Startup
     settings = Settings()
-    logger.info(f"Starting AgentTrace Ingestion Service on {settings.otlp_http_port}")
+    logger.info(f"Starting AgentTrace Service on {settings.otlp_http_port}")
 
     writer = DatabaseWriter(settings.database_url, batch_size=100)
     await writer.connect()
     logger.info("Database connection pool created")
+
+    # Set database pool for analysis API
+    if ANALYSIS_AVAILABLE and writer._pool:
+        set_db_pool(writer._pool)
+        logger.info("Analysis API initialized")
 
     yield
 
@@ -43,11 +58,15 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="AgentTrace Ingestion",
-    description="OTLP trace ingestion service for multi-agent LLM systems",
+    title="AgentTrace",
+    description="Multi-agent LLM debugging and observability platform",
     version="0.1.0",
     lifespan=lifespan,
 )
+
+# Mount analysis API router if available
+if ANALYSIS_AVAILABLE:
+    app.include_router(api_router)
 
 
 @app.get("/health")
@@ -184,13 +203,30 @@ async def receive_traces_grpc():
 @app.get("/")
 async def root():
     """Root endpoint with service information."""
+    endpoints = {
+        "health": "/health",
+        "ready": "/ready",
+        "otlp_http": "/v1/traces",
+        "otlp_grpc": "/v1/traces/grpc (not implemented)",
+    }
+
+    if ANALYSIS_AVAILABLE:
+        endpoints.update(
+            {
+                "list_traces": "/api/traces",
+                "trace_details": "/api/traces/{trace_id}",
+                "trace_graph": "/api/traces/{trace_id}/graph",
+                "trace_failures": "/api/traces/{trace_id}/failures",
+                "trace_metrics": "/api/traces/{trace_id}/metrics",
+                "classify_trace": "/api/traces/{trace_id}/classify",
+                "list_spans": "/api/traces/{trace_id}/spans",
+                "span_details": "/api/spans/{span_id}",
+            }
+        )
+
     return {
-        "service": "AgentTrace Ingestion",
+        "service": "AgentTrace",
         "version": "0.1.0",
-        "endpoints": {
-            "health": "/health",
-            "ready": "/ready",
-            "otlp_http": "/v1/traces",
-            "otlp_grpc": "/v1/traces/grpc (not implemented)",
-        },
+        "phase": "Phase 2 - Analysis Engine & Graph Construction",
+        "endpoints": endpoints,
     }

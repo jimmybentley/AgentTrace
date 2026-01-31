@@ -15,6 +15,7 @@ dependencies = [
     "opentelemetry-proto>=1.22.0",
     "protobuf>=4.25.0",
     "asyncpg>=0.29.0",
+    "agenttrace-analysis",
 ]
 
 [project.optional-dependencies]
@@ -26,6 +27,7 @@ dev = [
 
 [tool.uv.sources]
 agenttrace-core = { workspace = true }
+agenttrace-analysis = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
