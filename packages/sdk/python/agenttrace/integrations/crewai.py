@@ -16,7 +16,6 @@ import functools
 import logging
 from typing import Any
 
-from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 
 from agenttrace._otel import get_tracer, setup_opentelemetry
@@ -155,7 +154,8 @@ def _patch_agent(agent_class: Any) -> None:
                     if hasattr(llm, "model_name"):
                         span.set_attribute("agent.model", llm.model_name)
 
-                span.set_attribute("agenttrace.input", serialize({"task": task, "context": context}))
+                input_data = {"task": task, "context": context}
+                span.set_attribute("agenttrace.input", serialize(input_data))
 
                 try:
                     result = original_execute_task(self, task, context, **kwargs)
@@ -186,7 +186,7 @@ def _patch_task(task_class: Any) -> None:
 
             task_desc = getattr(self, "description", "unknown")
 
-            with tracer.start_as_current_span(f"crewai.task") as span:
+            with tracer.start_as_current_span("crewai.task") as span:
                 span.set_attribute("crewai.task_description", task_desc[:200])
                 span.set_attribute("agenttrace.kind", "task_execution")
                 span.set_attribute("agenttrace.input", serialize(context))

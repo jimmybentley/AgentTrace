@@ -53,10 +53,10 @@ async def write(findings: dict) -> str:
     await asyncio.sleep(1.5)
 
     article = f"""
-# Article: {findings['topic']}
+# Article: {findings["topic"]}
 
 ## Summary
-{findings['summary']}
+{findings["summary"]}
 
 ## Key Points
 """

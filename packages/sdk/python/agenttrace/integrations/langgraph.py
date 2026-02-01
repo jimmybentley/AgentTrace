@@ -17,7 +17,6 @@ import functools
 import logging
 from typing import Any
 
-from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 
 from agenttrace._otel import get_tracer, setup_opentelemetry

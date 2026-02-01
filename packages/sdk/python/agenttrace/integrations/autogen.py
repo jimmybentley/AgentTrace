@@ -12,12 +12,10 @@ Usage:
     >>> # ... your AutoGen code
 """
 
-import asyncio
 import functools
 import logging
 from typing import Any
 
-from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 
 from agenttrace._otel import get_tracer, setup_opentelemetry
@@ -92,12 +90,13 @@ def _patch_conversable_agent(agent_class: Any) -> None:
 
             with tracer.start_as_current_span("autogen.send") as span:
                 span.set_attribute("autogen.agent_name", self.name)
-                span.set_attribute("autogen.recipient_name", recipient.name if hasattr(recipient, "name") else str(recipient))
+                recipient_name = recipient.name if hasattr(recipient, "name") else str(recipient)
+                span.set_attribute("autogen.recipient_name", recipient_name)
                 span.set_attribute("agent.name", self.name)
                 span.set_attribute("agent.framework", "autogen")
                 span.set_attribute("agenttrace.kind", "agent_message")
                 span.set_attribute("message.from_agent", self.name)
-                span.set_attribute("message.to_agent", recipient.name if hasattr(recipient, "name") else str(recipient))
+                span.set_attribute("message.to_agent", recipient_name)
                 span.set_attribute("message.type", "request")
                 span.set_attribute("agenttrace.input", serialize(message))
 
@@ -123,11 +122,12 @@ def _patch_conversable_agent(agent_class: Any) -> None:
 
             with tracer.start_as_current_span("autogen.receive") as span:
                 span.set_attribute("autogen.agent_name", self.name)
-                span.set_attribute("autogen.sender_name", sender.name if hasattr(sender, "name") else str(sender))
+                sender_name = sender.name if hasattr(sender, "name") else str(sender)
+                span.set_attribute("autogen.sender_name", sender_name)
                 span.set_attribute("agent.name", self.name)
                 span.set_attribute("agent.framework", "autogen")
                 span.set_attribute("agenttrace.kind", "agent_message")
-                span.set_attribute("message.from_agent", sender.name if hasattr(sender, "name") else str(sender))
+                span.set_attribute("message.from_agent", sender_name)
                 span.set_attribute("message.to_agent", self.name)
                 span.set_attribute("message.type", "response")
                 span.set_attribute("agenttrace.input", serialize(message))

@@ -1,5 +1,7 @@
 """Tests for framework integrations."""
 
+import importlib.util
+
 import pytest
 
 from agenttrace.integrations import get_available_integrations, instrument_frameworks
@@ -32,12 +34,7 @@ def test_instrument_frameworks_none():
 
 
 # LangGraph-specific tests (only run if LangGraph is installed)
-try:
-    import langgraph
-
-    LANGGRAPH_AVAILABLE = True
-except ImportError:
-    LANGGRAPH_AVAILABLE = False
+LANGGRAPH_AVAILABLE = importlib.util.find_spec("langgraph") is not None
 
 
 @pytest.mark.skipif(not LANGGRAPH_AVAILABLE, reason="LangGraph not installed")

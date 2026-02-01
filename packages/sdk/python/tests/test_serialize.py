@@ -1,7 +1,5 @@
 """Tests for serialization utilities."""
 
-import pytest
-
 from agenttrace._serialize import serialize, truncate_string
 
 

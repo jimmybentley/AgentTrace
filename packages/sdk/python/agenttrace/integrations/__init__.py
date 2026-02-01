@@ -100,8 +100,7 @@ def instrument_frameworks(frameworks: List[str] | None = None) -> None:
 
         else:
             raise ValueError(
-                f"Unknown framework: {framework}. "
-                f"Available: langgraph, autogen, crewai"
+                f"Unknown framework: {framework}. Available: langgraph, autogen, crewai"
             )
 
 

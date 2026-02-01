@@ -2,7 +2,6 @@
 
 import asyncio
 import functools
-import inspect
 import logging
 from contextlib import contextmanager
 from typing import Any, Callable, TypeVar

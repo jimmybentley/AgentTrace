@@ -1,9 +1,5 @@
 """Tests for configuration management."""
 
-import os
-
-import pytest
-
 from agenttrace.config import AgentTraceConfig, configure, get_config
 
 

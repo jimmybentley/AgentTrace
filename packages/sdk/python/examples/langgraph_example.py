@@ -18,7 +18,7 @@ import agenttrace
 agenttrace.instrument(["langgraph"])
 
 # Now import and use LangGraph as normal
-from langgraph.graph import StateGraph
+from langgraph.graph import StateGraph  # noqa: E402
 
 
 # Define state type

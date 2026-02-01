@@ -10,7 +10,6 @@ import logging
 from contextlib import contextmanager
 from typing import Any, Callable, TypeVar
 
-from opentelemetry import trace
 from opentelemetry.trace import Status, StatusCode
 
 from agenttrace._otel import get_tracer, setup_opentelemetry
