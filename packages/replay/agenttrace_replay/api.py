@@ -312,11 +312,11 @@ async def execute_replay(
     try:
         result = await executor.replay(checkpoint_id, config)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"Replay execution failed: {str(e)}"
-        )
+        ) from e
 
     return ReplayResponse(
         replay_id=result.replay_id,

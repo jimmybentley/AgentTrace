@@ -9,7 +9,7 @@ This module provides the core replay functionality, allowing developers to:
 
 import asyncio
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -167,7 +167,7 @@ class ReplayExecutor:
                 ),
                 timeout=config.timeout_seconds,
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             success = False
             error = f"Replay timed out after {config.timeout_seconds} seconds"
         except Exception as e:

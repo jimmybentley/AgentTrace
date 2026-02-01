@@ -45,17 +45,16 @@ async def langgraph_executor(
         ValueError: If graph configuration is invalid
     """
     try:
-        from langgraph.graph import StateGraph
-    except ImportError:
+        import langgraph  # noqa: F401
+    except ImportError as e:
         raise ImportError(
             "LangGraph is not installed. Install with: pip install langgraph"
-        )
+        ) from e
 
     # For V1, we'll use a simplified approach:
     # Instead of trying to reconstruct the entire graph, we'll focus on
     # re-executing just the node that was checkpointed.
 
-    span_kind = state.get("span_kind")
     span_name = state.get("span_name", "")
 
     # Extract the node name from the span name
