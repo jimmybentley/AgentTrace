@@ -2,7 +2,7 @@
 
 import pytest
 
-from agenttrace_replay.checkpoint import Checkpoint, CheckpointManager
+from agenttrace_replay.checkpoint import Checkpoint
 
 
 class TestCheckpoint:

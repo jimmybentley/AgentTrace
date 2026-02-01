@@ -1,8 +1,8 @@
 """Tests for replay API endpoints."""
 
 import pytest
-from fastapi.testclient import TestClient
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
 
 from agenttrace_replay.api import router, set_db_pool
 

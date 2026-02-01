@@ -1,8 +1,8 @@
 """Pytest configuration and fixtures for replay tests."""
 
 import asyncio
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator
 from uuid import uuid4
 
 import asyncpg

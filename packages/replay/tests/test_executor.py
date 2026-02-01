@@ -2,7 +2,7 @@
 
 import pytest
 
-from agenttrace_replay.executor import ReplayConfig, ReplayExecutor
+from agenttrace_replay.executor import ReplayConfig
 
 
 class TestReplayConfig:
