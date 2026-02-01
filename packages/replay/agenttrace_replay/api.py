@@ -41,9 +41,7 @@ async def get_db_pool() -> asyncpg.Pool:
         HTTPException: If database pool is not configured
     """
     if _db_pool is None:
-        raise HTTPException(
-            status_code=500, detail="Database pool not configured"
-        )
+        raise HTTPException(status_code=500, detail="Database pool not configured")
     return _db_pool
 
 
@@ -83,9 +81,7 @@ async def get_replay_executor(
 class CreateCheckpointsRequest(BaseModel):
     """Request to create checkpoints for a trace."""
 
-    auto: bool = Field(
-        default=True, description="Auto-create checkpoints at key points"
-    )
+    auto: bool = Field(default=True, description="Auto-create checkpoints at key points")
 
 
 class CreateCheckpointsResponse(BaseModel):
@@ -118,12 +114,8 @@ class ReplayRequest(BaseModel):
         default=None,
         description="Override agent config (model, temperature, etc.)",
     )
-    timeout_seconds: int = Field(
-        default=300, description="Maximum time to wait for replay"
-    )
-    dry_run: bool = Field(
-        default=False, description="Use mock executor (no LLM calls)"
-    )
+    timeout_seconds: int = Field(default=300, description="Maximum time to wait for replay")
+    dry_run: bool = Field(default=False, description="Use mock executor (no LLM calls)")
 
 
 class ReplayResponse(BaseModel):
@@ -209,9 +201,7 @@ async def create_checkpoints(
             detail="Manual checkpoint creation not yet supported. Use auto=True.",
         )
 
-    return CreateCheckpointsResponse(
-        checkpoint_ids=checkpoint_ids, count=len(checkpoint_ids)
-    )
+    return CreateCheckpointsResponse(checkpoint_ids=checkpoint_ids, count=len(checkpoint_ids))
 
 
 @router.get("/checkpoints/{checkpoint_id}", response_model=CheckpointDetail)
@@ -314,9 +304,7 @@ async def execute_replay(
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
     except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Replay execution failed: {str(e)}"
-        ) from e
+        raise HTTPException(status_code=500, detail=f"Replay execution failed: {str(e)}") from e
 
     return ReplayResponse(
         replay_id=result.replay_id,

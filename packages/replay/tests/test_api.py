@@ -31,9 +31,7 @@ class TestCheckpointEndpoints:
     def test_list_checkpoints_empty(self, client, test_trace_with_spans):
         """Test listing checkpoints for a trace with no checkpoints."""
         try:
-            response = client.get(
-                f"/api/traces/{test_trace_with_spans['trace_id']}/checkpoints"
-            )
+            response = client.get(f"/api/traces/{test_trace_with_spans['trace_id']}/checkpoints")
 
             # May be 200 with empty list or 404 if no checkpoints
             assert response.status_code in [200, 404]
@@ -77,9 +75,7 @@ class TestReplayEndpoints:
     """Tests for replay API endpoints."""
 
     @pytest.mark.asyncio
-    async def test_execute_replay_dry_run(
-        self, client, checkpoint_manager, test_trace_with_spans
-    ):
+    async def test_execute_replay_dry_run(self, client, checkpoint_manager, test_trace_with_spans):
         """Test executing a replay with dry run."""
         try:
             from agenttrace_replay.checkpoint import Checkpoint
@@ -167,9 +163,7 @@ class TestReplayEndpoints:
             pytest.skip(f"Database not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_get_replay(
-        self, client, checkpoint_manager, test_trace_with_spans
-    ):
+    async def test_get_replay(self, client, checkpoint_manager, test_trace_with_spans):
         """Test retrieving a replay result."""
         try:
             from agenttrace_replay.checkpoint import Checkpoint
@@ -212,9 +206,7 @@ class TestReplayEndpoints:
     def test_list_replays_for_trace(self, client, test_trace_with_spans):
         """Test listing replays for a trace."""
         try:
-            response = client.get(
-                f"/api/traces/{test_trace_with_spans['trace_id']}/replays"
-            )
+            response = client.get(f"/api/traces/{test_trace_with_spans['trace_id']}/replays")
 
             assert response.status_code == 200
             data = response.json()

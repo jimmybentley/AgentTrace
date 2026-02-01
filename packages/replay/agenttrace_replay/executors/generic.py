@@ -52,7 +52,9 @@ async def generic_executor(
     }
 
     if input_modified:
-        result["warning"] = "Input was modified but agent was not re-executed. Output may not reflect changes."
+        result["warning"] = (
+            "Input was modified but agent was not re-executed. Output may not reflect changes."
+        )
         result["input_changes"] = {
             "original": original_input,
             "modified": input,

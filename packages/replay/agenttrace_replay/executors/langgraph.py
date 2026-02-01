@@ -47,9 +47,7 @@ async def langgraph_executor(
     try:
         import langgraph  # noqa: F401
     except ImportError as e:
-        raise ImportError(
-            "LangGraph is not installed. Install with: pip install langgraph"
-        ) from e
+        raise ImportError("LangGraph is not installed. Install with: pip install langgraph") from e
 
     # For V1, we'll use a simplified approach:
     # Instead of trying to reconstruct the entire graph, we'll focus on

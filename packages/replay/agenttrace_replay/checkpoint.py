@@ -111,9 +111,19 @@ class CheckpointManager:
         state_bytes = pickle.dumps(checkpoint.state)
 
         # Convert string UUIDs to UUID objects for database
-        trace_uuid = UUID(checkpoint.trace_id) if isinstance(checkpoint.trace_id, str) else checkpoint.trace_id
-        span_uuid = UUID(checkpoint.span_id) if isinstance(checkpoint.span_id, str) else checkpoint.span_id
-        agent_uuid = UUID(checkpoint.agent_id) if isinstance(checkpoint.agent_id, str) else checkpoint.agent_id
+        trace_uuid = (
+            UUID(checkpoint.trace_id)
+            if isinstance(checkpoint.trace_id, str)
+            else checkpoint.trace_id
+        )
+        span_uuid = (
+            UUID(checkpoint.span_id) if isinstance(checkpoint.span_id, str) else checkpoint.span_id
+        )
+        agent_uuid = (
+            UUID(checkpoint.agent_id)
+            if isinstance(checkpoint.agent_id, str)
+            else checkpoint.agent_id
+        )
 
         # We'll store in the new state_bytea column for binary data
         # and keep state as JSONB NULL for compatibility
@@ -125,7 +135,9 @@ class CheckpointManager:
             ) VALUES ($1, $2, $3, $4, $5, NULL, $6, $7)
             ON CONFLICT (checkpoint_id) DO NOTHING
             """,
-            UUID(checkpoint.checkpoint_id.split(":")[-1]) if ":" not in checkpoint.checkpoint_id[:8] else UUID(checkpoint.checkpoint_id.split(":")[0]),  # For now, use first part as UUID
+            UUID(checkpoint.checkpoint_id.split(":")[-1])
+            if ":" not in checkpoint.checkpoint_id[:8]
+            else UUID(checkpoint.checkpoint_id.split(":")[0]),  # For now, use first part as UUID
             trace_uuid,
             span_uuid,
             agent_uuid,

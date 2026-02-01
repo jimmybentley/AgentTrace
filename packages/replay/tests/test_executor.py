@@ -102,9 +102,7 @@ class TestReplayExecutor:
             checkpoint_id = await checkpoint_manager.save(checkpoint)
 
             # Execute replay with modified input
-            config = ReplayConfig(
-                modified_input={"query": "Modified question"}, dry_run=True
-            )
+            config = ReplayConfig(modified_input={"query": "Modified question"}, dry_run=True)
             result = await replay_executor.replay(checkpoint_id, config)
 
             assert result is not None
@@ -124,9 +122,7 @@ class TestReplayExecutor:
             pytest.skip(f"Database not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_get_replay(
-        self, replay_executor, checkpoint_manager, test_trace_with_spans
-    ):
+    async def test_get_replay(self, replay_executor, checkpoint_manager, test_trace_with_spans):
         """Test retrieving a replay result."""
         try:
             from agenttrace_replay.checkpoint import Checkpoint
@@ -146,9 +142,7 @@ class TestReplayExecutor:
             )
 
             checkpoint_id = await checkpoint_manager.save(checkpoint)
-            result = await replay_executor.replay(
-                checkpoint_id, ReplayConfig(dry_run=True)
-            )
+            result = await replay_executor.replay(checkpoint_id, ReplayConfig(dry_run=True))
 
             # Retrieve the replay
             retrieved = await replay_executor.get_replay(result.replay_id)

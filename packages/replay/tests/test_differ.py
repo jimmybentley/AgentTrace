@@ -1,6 +1,5 @@
 """Tests for diff computation."""
 
-
 from agenttrace_replay.differ import compute_diff, format_diff_for_display
 
 

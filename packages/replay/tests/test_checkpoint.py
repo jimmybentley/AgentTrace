@@ -63,9 +63,7 @@ class TestCheckpointManager:
     """Tests for CheckpointManager class."""
 
     @pytest.mark.asyncio
-    async def test_save_and_load_checkpoint(
-        self, checkpoint_manager, sample_checkpoint
-    ):
+    async def test_save_and_load_checkpoint(self, checkpoint_manager, sample_checkpoint):
         """Test saving and loading a checkpoint."""
         # This test requires a real database connection
         # Skip if database is not available
@@ -91,9 +89,7 @@ class TestCheckpointManager:
             pytest.skip(f"Database not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_list_checkpoints_for_trace(
-        self, checkpoint_manager, test_trace_with_spans
-    ):
+    async def test_list_checkpoints_for_trace(self, checkpoint_manager, test_trace_with_spans):
         """Test listing checkpoints for a trace."""
         try:
             # Create a checkpoint for the test trace
@@ -108,9 +104,7 @@ class TestCheckpointManager:
             await checkpoint_manager.save(checkpoint)
 
             # List checkpoints
-            checkpoints = await checkpoint_manager.list_for_trace(
-                test_trace_with_spans["trace_id"]
-            )
+            checkpoints = await checkpoint_manager.list_for_trace(test_trace_with_spans["trace_id"])
 
             assert len(checkpoints) > 0
             assert any(cp["name"] == "test_checkpoint" for cp in checkpoints)
@@ -135,9 +129,7 @@ class TestCheckpointManager:
             pytest.skip(f"Database not available: {e}")
 
     @pytest.mark.asyncio
-    async def test_auto_checkpoint_trace(
-        self, checkpoint_manager, test_trace_with_spans
-    ):
+    async def test_auto_checkpoint_trace(self, checkpoint_manager, test_trace_with_spans):
         """Test automatically creating checkpoints for a trace."""
         try:
             checkpoint_ids = await checkpoint_manager.auto_checkpoint_trace(

@@ -243,9 +243,7 @@ class ReplayExecutor:
 
         return dict(row)
 
-    async def _store_replay(
-        self, result: ReplayResult, trace_id: str, config: ReplayConfig
-    ):
+    async def _store_replay(self, result: ReplayResult, trace_id: str, config: ReplayConfig):
         """Store replay result in the database.
 
         Args:

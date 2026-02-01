@@ -50,8 +50,12 @@ async def mock_executor(
 
     # For different span kinds, tailor the response
     if span_kind == "llm_call":
-        response["content"] = f"Mock LLM response to: {input.get('query', input.get('prompt', 'unknown'))}"
-        response["model"] = overrides.get("model") if overrides else config.get("model", "mock-model")
+        response["content"] = (
+            f"Mock LLM response to: {input.get('query', input.get('prompt', 'unknown'))}"
+        )
+        response["model"] = (
+            overrides.get("model") if overrides else config.get("model", "mock-model")
+        )
         response["tokens"] = {"input": 10, "output": 20}
 
     elif span_kind == "tool_call":
