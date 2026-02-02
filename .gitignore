@@ -66,6 +66,36 @@ dmypy.json
 *.log
 logs/
 
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.vite/
+*.tsbuildinfo
+
 # OS
 .DS_Store
 Thumbs.db
+
+# Local data
+pgdata/
+*.local
+
+# IDE specific
+*.swp
+*.swo
+*~
+.project
+.settings/
+.classpath
+
+# Docker
+.docker/

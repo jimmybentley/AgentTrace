@@ -55,7 +55,25 @@ format: ## Format code with ruff
 	uv run ruff check --fix packages/
 	@echo "✓ Code formatted"
 
-docker-up: ## Start Docker services (PostgreSQL + TimescaleDB)
+up: ## Start full stack (database, API, ingestion, web UI)
+	@echo "Starting full AgentTrace stack..."
+	docker compose up -d
+	@echo "✓ Full stack started"
+	@echo ""
+	@echo "Services available at:"
+	@echo "  Web UI:       http://localhost:3000"
+	@echo "  API:          http://localhost:8000"
+	@echo "  Ingestion:    http://localhost:4318"
+	@echo "  Database:     localhost:5432"
+	@echo ""
+	@echo "Run 'docker compose logs -f' to view logs"
+
+down: ## Stop full stack
+	@echo "Stopping full AgentTrace stack..."
+	docker compose down
+	@echo "✓ Full stack stopped"
+
+docker-up: ## Start Docker services (PostgreSQL + TimescaleDB only)
 	@echo "Starting Docker services..."
 	docker-compose -f docker-compose.dev.yml up -d
 	@echo "✓ Docker services started"
