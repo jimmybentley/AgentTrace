@@ -153,8 +153,8 @@ List traces with pagination and filtering.
     {
       "trace_id": "trace-123",
       "name": "customer_support",
-      "start_time": "2024-01-01T00:00:00Z",
-      "end_time": "2024-01-01T00:00:10Z",
+      "start_time": "2026-01-01T00:00:00Z",
+      "end_time": "2026-01-01T00:00:10Z",
       "duration_ms": 10000,
       "service_name": "support-bot",
       "status": "ok",
@@ -181,7 +181,7 @@ curl "http://localhost:8000/api/traces?status=error"
 curl "http://localhost:8000/api/traces?service_name=support-bot&limit=10"
 
 # Get traces in time range
-curl "http://localhost:8000/api/traces?start_time_gte=2024-01-01T00:00:00Z&start_time_lte=2024-01-31T23:59:59Z"
+curl "http://localhost:8000/api/traces?start_time_gte=2026-01-01T00:00:00Z&start_time_lte=2026-01-31T23:59:59Z"
 ```
 
 #### GET /api/traces/{trace_id}
@@ -198,8 +198,8 @@ Get detailed trace information.
 {
   "trace_id": "trace-123",
   "name": "customer_support",
-  "start_time": "2024-01-01T00:00:00Z",
-  "end_time": "2024-01-01T00:00:10Z",
+  "start_time": "2026-01-01T00:00:00Z",
+  "end_time": "2026-01-01T00:00:10Z",
   "duration_ms": 10000,
   "service_name": "support-bot",
   "status": "ok",
@@ -234,8 +234,8 @@ Get all spans for a trace.
       "span_id": "span-456",
       "parent_span_id": null,
       "name": "planner_agent",
-      "start_time": "2024-01-01T00:00:00Z",
-      "end_time": "2024-01-01T00:00:05Z",
+      "start_time": "2026-01-01T00:00:00Z",
+      "end_time": "2026-01-01T00:00:05Z",
       "duration_ms": 5000,
       "attributes": {
         "agent.name": "Planner",
@@ -395,7 +395,7 @@ Get failure annotations for a trace.
       "subcategory": "planning_error",
       "severity": "high",
       "description": "Agent failed to consider edge case in customer query",
-      "detected_at": "2024-01-01T00:00:05Z",
+      "detected_at": "2026-01-01T00:00:05Z",
       "span_name": "planner_agent",
       "error_message": "Invalid plan generated"
     },
@@ -406,7 +406,7 @@ Get failure annotations for a trace.
       "subcategory": "handoff_failure",
       "severity": "medium",
       "description": "Failed to hand off task to Executor agent",
-      "detected_at": "2024-01-01T00:00:08Z",
+      "detected_at": "2026-01-01T00:00:08Z",
       "span_name": "coordinator",
       "error_message": "Agent not available"
     }
@@ -479,7 +479,7 @@ List checkpoints for a trace.
       "checkpoint_id": "chk-1",
       "span_id": "span-456",
       "name": "after_planning",
-      "created_at": "2024-01-01T00:00:05Z",
+      "created_at": "2026-01-01T00:00:05Z",
       "state_size_bytes": 1024,
       "can_replay": true
     }
@@ -541,7 +541,7 @@ Get checkpoint details.
   "trace_id": "trace-123",
   "span_id": "span-456",
   "name": "after_planning",
-  "created_at": "2024-01-01T00:00:05Z",
+  "created_at": "2026-01-01T00:00:05Z",
   "state": {
     "agent_name": "Planner",
     "input": "Plan workflow",
@@ -604,8 +604,8 @@ Execute a replay from a checkpoint.
   "replay_id": "replay-1",
   "checkpoint_id": "chk-1",
   "status": "completed",
-  "started_at": "2024-01-01T00:10:00Z",
-  "completed_at": "2024-01-01T00:10:05Z",
+  "started_at": "2026-01-01T00:10:00Z",
+  "completed_at": "2026-01-01T00:10:05Z",
   "duration_ms": 5000,
   "output": {
     "result": "Modified result based on new input"
@@ -652,8 +652,8 @@ Get replay result.
   "checkpoint_id": "chk-1",
   "trace_id": "trace-123",
   "status": "completed",
-  "started_at": "2024-01-01T00:10:00Z",
-  "completed_at": "2024-01-01T00:10:05Z",
+  "started_at": "2026-01-01T00:10:00Z",
+  "completed_at": "2026-01-01T00:10:05Z",
   "duration_ms": 5000,
   "output": {...},
   "error": null
@@ -714,7 +714,7 @@ List all replays for a trace.
       "replay_id": "replay-1",
       "checkpoint_id": "chk-1",
       "status": "completed",
-      "started_at": "2024-01-01T00:10:00Z",
+      "started_at": "2026-01-01T00:10:00Z",
       "duration_ms": 5000,
       "has_changes": true
     }
@@ -743,8 +743,8 @@ Get aggregated metrics.
 ```json
 {
   "time_range": {
-    "start": "2024-01-01T00:00:00Z",
-    "end": "2024-01-31T23:59:59Z"
+    "start": "2026-01-01T00:00:00Z",
+    "end": "2026-01-31T23:59:59Z"
   },
   "total_traces": 1000,
   "total_spans": 15000,
@@ -769,8 +769,8 @@ Get aggregated metrics.
     "state_management": 5
   },
   "traces_over_time": [
-    {"date": "2024-01-01", "count": 50},
-    {"date": "2024-01-02", "count": 55}
+    {"date": "2026-01-01", "count": 50},
+    {"date": "2026-01-02", "count": 55}
   ]
 }
 ```
@@ -781,7 +781,7 @@ Get aggregated metrics.
 curl http://localhost:8000/api/metrics
 
 # Get metrics for time range
-curl "http://localhost:8000/api/metrics?start_time=2024-01-01T00:00:00Z&end_time=2024-01-31T23:59:59Z"
+curl "http://localhost:8000/api/metrics?start_time=2026-01-01T00:00:00Z&end_time=2026-01-31T23:59:59Z"
 ```
 
 ## Error Responses
@@ -835,7 +835,7 @@ Response includes pagination metadata:
 Most list endpoints support filtering via query parameters:
 
 - Exact match: `?status=error`
-- Range: `?start_time_gte=2024-01-01&start_time_lte=2024-01-31`
+- Range: `?start_time_gte=2026-01-01&start_time_lte=2026-01-31`
 - Multiple values: `?category=reasoning,communication` (future)
 
 ## Sorting

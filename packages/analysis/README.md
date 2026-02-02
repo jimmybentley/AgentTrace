@@ -62,8 +62,8 @@ List all traces with pagination and filtering.
     {
       "trace_id": "trace-123",
       "name": "customer_support",
-      "start_time": "2024-01-01T00:00:00Z",
-      "end_time": "2024-01-01T00:00:10Z",
+      "start_time": "2026-01-01T00:00:00Z",
+      "end_time": "2026-01-01T00:00:10Z",
       "service_name": "support-bot",
       "status": "ok",
       "span_count": 15,
@@ -85,8 +85,8 @@ Get detailed information about a specific trace.
 {
   "trace_id": "trace-123",
   "name": "customer_support",
-  "start_time": "2024-01-01T00:00:00Z",
-  "end_time": "2024-01-01T00:00:10Z",
+  "start_time": "2026-01-01T00:00:00Z",
+  "end_time": "2026-01-01T00:00:10Z",
   "service_name": "support-bot",
   "status": "ok",
   "span_count": 15,
@@ -109,8 +109,8 @@ Get all spans for a trace with parent-child relationships.
       "span_id": "span-456",
       "parent_span_id": null,
       "name": "planner_agent",
-      "start_time": "2024-01-01T00:00:00Z",
-      "end_time": "2024-01-01T00:00:05Z",
+      "start_time": "2026-01-01T00:00:00Z",
+      "end_time": "2026-01-01T00:00:05Z",
       "attributes": {...},
       "events": [],
       "status": "ok"
@@ -190,7 +190,7 @@ Get all failure annotations for a trace.
       "subcategory": "planning_error",
       "severity": "high",
       "description": "Agent failed to consider edge case",
-      "detected_at": "2024-01-01T00:00:05Z"
+      "detected_at": "2026-01-01T00:00:05Z"
     }
   ],
   "failure_count": 1
@@ -348,7 +348,7 @@ curl -X POST http://localhost:8000/api/traces/trace-123/analyze
 ### Get Metrics
 
 ```bash
-curl "http://localhost:8000/api/metrics?start_time=2024-01-01T00:00:00Z"
+curl "http://localhost:8000/api/metrics?start_time=2026-01-01T00:00:00Z"
 ```
 
 ## Architecture
