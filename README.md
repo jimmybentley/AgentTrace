@@ -4,154 +4,153 @@
 
 AgentTrace is an open-source debugging and observability platform purpose-built for multi-agent LLM systems. Unlike existing tools that treat multi-agent workflows as linear chains, AgentTrace models agent coordination as a first-class concern—visualizing communication graphs, attributing failures to specific agents, and enabling time-travel replay debugging.
 
-## Status
+## Overview
 
-**Phase 1: Core Ingestion & Storage** - Complete
-
-AgentTrace is in active development. The OTLP ingestion pipeline is operational and accepting traces from multi-agent systems. See [agenttrace-design-doc.md](./agenttrace-design-doc.md) for the complete architecture and roadmap.
-
-### Currently Working
-
-- OTLP trace ingestion (HTTP endpoint with protobuf and JSON support)
-- Framework-specific normalization for LangGraph, AutoGen, CrewAI, and generic agents
-- TimescaleDB-optimized storage for spans, agents, and inter-agent messages
-- Batch writing with connection pooling for high-throughput ingestion
-- Comprehensive test suite with 48 tests (41 passing unit tests, 7 integration tests)
+AgentTrace is a complete, production-ready debugging and observability platform for multi-agent LLM systems. The entire platform is operational and ready to use.
 
 ## Features
 
-**Available Now:**
-- **OTLP Native Ingestion** - Production-ready HTTP endpoint accepting OpenTelemetry Protocol traces
-- **Framework Agnostic Normalization** - Intelligent parsing for LangGraph, AutoGen, CrewAI, and custom agents
-- **Time-Series Optimized Storage** - PostgreSQL with TimescaleDB for efficient span querying
-- **Agent Metadata Tracking** - Automatic extraction of agent names, roles, frameworks, and configurations
+### Core Capabilities
 
-**Phase 2 (Complete):**
-- **Agent Communication Graphs** - Visual representation of agent interactions and message flows
-- **Failure Attribution** - MAST taxonomy-based classification of multi-agent system failures
-- **Analysis API** - 8 REST endpoints for trace querying, graph data, and metrics
+- **🔌 OTLP Native Ingestion** - Production-ready HTTP endpoint accepting OpenTelemetry Protocol traces
+- **🔄 Framework Agnostic** - Intelligent parsing for LangGraph, AutoGen, CrewAI, and custom agents
+- **⚡ Time-Series Optimized Storage** - PostgreSQL with TimescaleDB for efficient span querying
+- **🤖 Agent Metadata Tracking** - Automatic extraction of agent names, roles, frameworks, and configurations
 
-**Phase 3 (Complete):**
-- **Web UI** - React dashboard with D3.js graph visualization
-- **Interactive Trace Explorer** - Paginated trace list with filtering and search
-- **Agent Graph Visualization** - Force-directed D3.js graph showing agent communication
-- **Timeline View** - Gantt-style span execution timeline
-- **Failure Analysis Panel** - Display and filter failure annotations by category
+### Visualization & Analysis
 
-**Coming Soon:**
-- **Time-Travel Replay** - Checkpoint-based debugging to replay from arbitrary points in execution
+- **📊 Agent Communication Graphs** - D3.js force-directed graph showing agent interactions and message flows
+- **🔍 Failure Attribution** - MAST taxonomy-based classification of multi-agent system failures
+- **📈 Interactive Timeline View** - Gantt-style span execution visualization
+- **🎯 Trace Explorer** - Paginated trace list with filtering and search
+- **⚠️ Failure Analysis Panel** - Display and filter failure annotations by category
+
+### Debugging Tools
+
+- **⏪ Time-Travel Replay** - Checkpoint-based debugging to replay execution from arbitrary points
+- **🔄 State Reconstruction** - Recreate agent state at any checkpoint for debugging
+- **📝 Diff Visualization** - Compare original vs. replay outputs to identify issues
+
+### SDK & Integrations
+
+- **🐍 Python SDK** - Manual and auto-instrumentation with decorators
+- **🔧 Framework Auto-Instrumentation** - Automatic tracing for LangGraph, AutoGen, and CrewAI
+- **📡 OpenTelemetry-Based** - Standard OTLP export to any compatible backend
+
+## Architecture
+
+AgentTrace consists of five main components that work together to provide comprehensive observability:
+
+```mermaid
+graph LR
+    A[Your Agent App] -->|OTLP Traces| B[Ingestion Service]
+    B -->|Normalized Data| C[(PostgreSQL + TimescaleDB)]
+    C --> D[Analysis API]
+    D --> E[Web UI]
+    D -->|Graphs & Metrics| E
+    D -->|Replay Engine| F[Checkpoint Manager]
+    F --> C
+
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#f0e1ff
+    style D fill:#e1ffe1
+    style E fill:#ffe1e1
+    style F fill:#fffacd
+```
+
+**Component Overview:**
+
+- **Ingestion Service** (`packages/ingestion`) - OTLP HTTP endpoint that receives traces and normalizes them for storage
+- **Core Models** (`packages/core`) - Shared data models (Trace, Span, Agent) used across all services
+- **Analysis Engine** (`packages/analysis`) - Builds agent communication graphs and classifies failures using MAST taxonomy
+- **Replay Engine** (`packages/replay`) - Manages checkpoints and enables time-travel debugging
+- **Python SDK** (`packages/sdk/python`) - Client library for instrumenting agent applications
+- **Web UI** (`web`) - React dashboard for visualizing traces, graphs, and debugging
 
 ## Quick Start
 
-### Prerequisites
+Get AgentTrace running in under 5 minutes:
 
-- Python 3.11 or higher
-- [uv](https://github.com/astral-sh/uv) package manager
-- Docker and Docker Compose (for local development)
-
-### Installation
-
-1. Clone the repository:
 ```bash
+# 1. Clone and navigate to the repository
 git clone https://github.com/jimmybentley/AgentTrace.git
 cd AgentTrace
+
+# 2. Start the full stack with Docker Compose
+docker compose up -d
+
+# 3. Open the web UI
+open http://localhost:3000
 ```
 
-2. Install all dependencies:
+That's it! The full stack is now running:
+- **Web UI**: http://localhost:3000
+- **Analysis API**: http://localhost:8000/api
+- **OTLP Ingestion**: http://localhost:4318/v1/traces
+- **Database**: localhost:5432 (agenttrace/agenttrace/dev_password)
+
+### Send Your First Trace
+
+Instrument your agent application with the Python SDK:
+
 ```bash
+pip install agenttrace
+```
+
+```python
+import agenttrace
+
+# Auto-instrument your framework
+agenttrace.instrument(["langgraph"])
+
+# Or use manual instrumentation
+from agenttrace import AgentTracer
+
+tracer = AgentTracer(endpoint="http://localhost:4318")
+
+@tracer.agent("Planner", role="planner")
+async def plan(task: str) -> str:
+    return f"Plan for: {task}"
+```
+
+Traces will automatically appear in the web UI at http://localhost:3000.
+
+### Development Setup
+
+For local development with hot reloading:
+
+```bash
+# Install dependencies
 make install
-```
 
-3. Start the database:
-```bash
-make docker-up
-```
+# Start database only
+make docker-up && make migrate
 
-This starts PostgreSQL with TimescaleDB on `localhost:5432`:
-- Database: `agenttrace`
-- User: `agenttrace`
-- Password: `dev_password`
-
-4. Run database migrations:
-```bash
-make migrate
-```
-
-5. Start the analysis API:
-```bash
+# Start API server (with hot reload)
 make run-api
+
+# Start web UI (with hot reload)
+make run-web
 ```
 
-The analysis API is now available at `http://localhost:8000`.
+## Screenshots
 
-6. Start the ingestion service:
-```bash
-make run-ingestion
-```
+### Trace List
+![Trace List](docs/screenshots/trace-list.png)
+*Browse all traces with filtering, search, and status indicators*
 
-The OTLP ingestion endpoint is now available at `http://localhost:4318/v1/traces`.
+### Agent Communication Graph
+![Agent Graph](docs/screenshots/agent-graph.png)
+*D3.js force-directed graph showing agent interactions and message flows*
 
-7. Start the web UI:
-```bash
-cd web && npm install && npm run dev
-```
+### Span Timeline
+![Timeline View](docs/screenshots/timeline.png)
+*Gantt-style timeline view of span execution with nested relationships*
 
-The web UI is now available at `http://localhost:5173`.
-
-### Verify Installation
-
-Run the test suite to verify everything is working:
-
-```bash
-# Unit tests (no database required)
-make test
-
-# Integration tests (requires database)
-make test-integration
-
-# Linting and formatting
-make lint
-
-# Verify all imports
-make verify
-```
-
-Expected output:
-```
-✓ 41 unit tests passing
-✓ 7 integration tests passing
-✓ All imports verified
-```
-
-### Sending Your First Trace
-
-Once the ingestion service is running, you can send OTLP traces via HTTP:
-
-```bash
-curl -X POST http://localhost:4318/v1/traces \
-  -H "Content-Type: application/json" \
-  -d '{
-    "resourceSpans": [{
-      "resource": {
-        "attributes": [
-          {"key": "service.name", "value": {"stringValue": "my-agent-system"}},
-          {"key": "agent.framework", "value": {"stringValue": "langgraph"}}
-        ]
-      },
-      "scopeSpans": [{
-        "spans": [{
-          "traceId": "0102030405060708090a0b0c0d0e0f10",
-          "spanId": "0102030405060708",
-          "name": "agent_execution",
-          "startTimeUnixNano": "1640000000000000000",
-          "endTimeUnixNano": "1640000001000000000"
-        }]
-      }]
-    }]
-  }'
-```
-
-The trace will be normalized, stored in TimescaleDB, and available for querying.
+### Failure Analysis
+![Failure Panel](docs/screenshots/failure-panel.png)
+*MAST taxonomy-based failure classification and filtering*
 
 ## Project Structure
 
@@ -314,32 +313,50 @@ export DATABASE_URL="postgresql://user:pass@host:5432/dbname"
 make migrate
 ```
 
-## Roadmap
+## Documentation
 
-- [x] **Phase 0** - Project scaffolding and workspace setup
-- [x] **Phase 1** - Core ingestion & storage (OTLP endpoint, normalizers, TimescaleDB schema)
-- [x] **Phase 2** - Analysis engine & graph construction (communication graphs, MAST taxonomy)
-- [x] **Phase 3** - Web UI (React dashboard, D3.js trace visualization, debugging interface) ← **Current**
-- [ ] **Phase 4** - Replay engine (checkpoint management, state reconstruction)
-- [ ] **Phase 5** - SDK & integrations (Python SDK, framework-specific instrumentation)
+Comprehensive documentation is available in the `docs/` directory:
 
-See [agenttrace-design-doc.md](./agenttrace-design-doc.md) for detailed specifications of each phase.
+- **[Getting Started Guide](docs/getting-started.md)** - Step-by-step setup instructions
+- **[Architecture Overview](docs/architecture.md)** - System design and component interaction
+- **[API Reference](docs/api-reference.md)** - Complete REST API documentation
+- **[SDK Guide](docs/sdk-guide.md)** - Python SDK usage and examples
+- **[Deployment Guide](docs/deployment.md)** - Docker Compose, Kubernetes, and production setup
+
+Package-specific documentation:
+- [Core Models](packages/core/README.md)
+- [Ingestion Service](packages/ingestion/README.md)
+- [Analysis Engine](packages/analysis/README.md)
+- [Replay Engine](packages/replay/README.md)
+- [Python SDK](packages/sdk/python/README.md)
+- [Web UI](web/README.md)
 
 ## Contributing
 
-AgentTrace is in active development. The ingestion pipeline is operational and contributions are welcome.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
 
-Before contributing:
-1. Review the [design document](./agenttrace-design-doc.md) for architecture context
-2. Check existing issues and PRs to avoid duplication
-3. Run `make test` and `make lint` to ensure code quality
-4. Follow the existing code style (Ruff formatting, type hints required)
+**Quick start for contributors:**
 
-Areas where contributions would be particularly valuable:
-- Additional framework normalizers (Semantic Kernel, Haystack, etc.)
-- Test coverage improvements
+```bash
+# Fork and clone the repository
+git clone https://github.com/yourusername/AgentTrace.git
+cd AgentTrace
+
+# Install development dependencies
+make dev
+
+# Run tests
+make test
+
+# Format code
+make format
+```
+
+Areas where contributions are especially valuable:
+- Additional framework integrations (Semantic Kernel, Haystack, etc.)
+- Performance optimizations
 - Documentation and examples
-- Performance optimizations for high-throughput ingestion
+- Bug fixes and issue resolution
 
 ## License
 

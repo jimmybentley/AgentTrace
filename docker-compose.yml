@@ -1,0 +1,156 @@
+version: '3.8'
+
+services:
+  # PostgreSQL with TimescaleDB extension
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: agenttrace-postgres
+    environment:
+      POSTGRES_DB: agenttrace
+      POSTGRES_USER: agenttrace
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-dev_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agenttrace"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - agenttrace
+
+  # Migrations (runs once to set up database schema)
+  migrations:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        WORKDIR /app
+        RUN pip install uv
+        COPY pyproject.toml uv.lock ./
+        COPY packages ./packages
+        COPY migrations ./migrations
+        COPY alembic.ini ./
+        RUN uv sync
+        CMD ["uv", "run", "alembic", "upgrade", "head"]
+    environment:
+      DATABASE_URL: postgresql://agenttrace:${DB_PASSWORD:-dev_password}@postgres:5432/agenttrace
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - agenttrace
+
+  # Ingestion service (OTLP endpoint)
+  ingestion:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        WORKDIR /app
+        RUN pip install uv
+        COPY pyproject.toml uv.lock ./
+        COPY packages ./packages
+        RUN uv sync --package agenttrace-ingestion
+        EXPOSE 4318
+        CMD ["uv", "run", "uvicorn", "agenttrace_ingestion.server:app", "--host", "0.0.0.0", "--port", "4318"]
+    container_name: agenttrace-ingestion
+    environment:
+      DATABASE_URL: postgresql://agenttrace:${DB_PASSWORD:-dev_password}@postgres:5432/agenttrace
+      OTLP_HTTP_PORT: 4318
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      BATCH_SIZE: ${BATCH_SIZE:-100}
+      POOL_SIZE: ${POOL_SIZE:-20}
+    ports:
+      - "4318:4318"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4318/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - agenttrace
+
+  # Analysis API (REST endpoints)
+  api:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM python:3.11-slim
+        WORKDIR /app
+        RUN pip install uv
+        COPY pyproject.toml uv.lock ./
+        COPY packages ./packages
+        RUN uv sync --all-packages
+        EXPOSE 8000
+        CMD ["uv", "run", "uvicorn", "agenttrace_ingestion.server:app", "--host", "0.0.0.0", "--port", "8000"]
+    container_name: agenttrace-api
+    environment:
+      DATABASE_URL: postgresql://agenttrace:${DB_PASSWORD:-dev_password}@postgres:5432/agenttrace
+      API_PORT: 8000
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:5173}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - agenttrace
+
+  # Web UI (React frontend)
+  web:
+    build:
+      context: ./web
+      dockerfile_inline: |
+        FROM node:18-alpine AS builder
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci
+        COPY . .
+        ARG VITE_API_URL=http://localhost:8000
+        ENV VITE_API_URL=$VITE_API_URL
+        RUN npm run build
+
+        FROM nginx:alpine
+        COPY --from=builder /app/dist /usr/share/nginx/html
+        COPY --from=builder /app/nginx.conf /etc/nginx/conf.d/default.conf
+        EXPOSE 80
+        CMD ["nginx", "-g", "daemon off;"]
+    container_name: agenttrace-web
+    environment:
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - agenttrace
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  agenttrace:
+    driver: bridge
